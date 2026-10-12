@@ -5,7 +5,10 @@ ARG GROUP_ID=1000
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         git curl unzip zip libpq-dev libzip-dev postgresql-client \
-    && docker-php-ext-install pdo_pgsql pgsql bcmath zip pcntl opcache \
+        libicu-dev libpng-dev libjpeg-dev libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j"$(nproc)" \
+        pdo_pgsql pgsql bcmath zip pcntl opcache intl gd exif \
     && rm -rf /var/lib/apt/lists/*
 
 COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
