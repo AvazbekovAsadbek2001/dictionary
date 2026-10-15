@@ -1,0 +1,131 @@
+@import url('https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;900&display=swap');
+:root {
+  --ink: #231942;
+  --muted: #6d628f;
+  --pink: #ff6b9d;
+  --yellow: #ffd23f;
+  --blue: #4d96ff;
+  --green: #2ec4a6;
+  --main: #3d6bff;       /* asosiy rang */
+  --main-2: #19b3c9;
+  --font: 'Nunito', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+}
+
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; }
+
+body {
+  display: block;
+  min-width: 0;
+  font-family: var(--font);
+  color: var(--ink);
+  background:
+    radial-gradient(circle at 12% 18%, rgba(255, 210, 63, .35), transparent 38%),
+    radial-gradient(circle at 88% 82%, rgba(46, 196, 166, .30), transparent 40%),
+    radial-gradient(circle at 85% 15%, rgba(77, 150, 255, .22), transparent 35%),
+    linear-gradient(160deg, #ffe0ee 0%, #e4e6ff 50%, #d6f6ec 100%) fixed;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#app { width: 100%; max-width: none; margin: 0; padding: 0; }
+
+/* ---------- menu ----------
+   Hamma o'lcham "em" da: .screen ning font-size qiymati butun sahifani kattalashtiradi. */
+.screen {
+  font-size: clamp(16px, 2.4vmin, 28px);
+  width: 100%;
+  max-width: 30em;
+  height: 100dvh;
+  margin: 0 auto;
+  padding: max(1.2em, env(safe-area-inset-top)) 1.2em 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.bar { display: flex; align-items: center; gap: .8em; margin-bottom: 1em; }
+
+.back {
+  flex: none;
+  width: 2.6em; height: 2.6em;
+  border: 0; border-radius: 1em;
+  background: #fff; color: var(--ink);
+  font: inherit; font-size: 1.1em; font-weight: 900;
+  box-shadow: 0 .25em 0 rgba(35, 25, 66, .14);
+  cursor: pointer;
+  transition: transform .08s, box-shadow .08s;
+}
+.back:active { transform: translateY(.2em); box-shadow: 0 .05em 0 rgba(35, 25, 66, .14); }
+
+.ttl { flex: 1; min-width: 0; }
+.h {
+  font-size: 2.5em;
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  background: linear-gradient(90deg, var(--main), var(--main-2));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+.sub { margin-top: .15em; color: var(--muted); font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+.friends { flex: none; display: flex; gap: .1em; }
+.friend { width: 3.2em; height: 4em; animation: nod 3s ease-in-out infinite; }
+.friend.f2 { animation-delay: -1.5s; }
+@keyframes nod { 50% { transform: translateY(-.25em); } }
+
+.list {
+  list-style: none;
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  align-content: start;
+  gap: .9em;
+  padding: .3em .2em 2em;
+  margin: 0 -.2em;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.list::-webkit-scrollbar { display: none; }
+.list li { animation: rise .4s backwards; animation-delay: calc(var(--i) * 60ms); }
+@keyframes rise { from { opacity: 0; transform: translateY(.8em); } }
+
+.card {
+  --bg: #ff6b9d; --sh: #d9457b; --soft: #ffe3ee;
+  width: 100%;
+  display: flex; align-items: center; gap: 1em;
+  padding: .85em 1em;
+  border: 0; border-radius: 1.4em;
+  background: #fff; color: var(--ink);
+  font: inherit; text-align: left;
+  box-shadow: 0 .3em 0 var(--sh);
+  cursor: pointer;
+  transition: transform .08s, box-shadow .08s;
+}
+.card:active { transform: translateY(.25em); box-shadow: 0 .05em 0 var(--sh); }
+.c0 { --bg: #ff6b9d; --sh: #d9457b; --soft: #ffe3ee; }
+.c1 { --bg: #ffd23f; --sh: #d9a900; --soft: #fff3c2; }
+.c2 { --bg: #4d96ff; --sh: #2a6fd6; --soft: #dce9ff; }
+.c3 { --bg: #2ec4a6; --sh: #1a9a80; --soft: #d5f5ee; }
+
+.ico {
+  flex: none;
+  width: 2.7em; height: 2.7em;
+  display: grid; place-items: center;
+  border-radius: 1em;
+  background: var(--bg);
+  box-shadow: 0 .15em 0 var(--sh);
+  font-size: 1.5em; font-weight: 900; line-height: 1;
+  color: var(--ink);
+}
+.txt { flex: 1; min-width: 0; }
+.txt b { display: block; font-size: 1.15em; font-weight: 900; }
+.txt small { display: block; margin-top: .15em; color: var(--muted); font-weight: 700; font-size: .85em; }
+.chip { display: inline-block; margin-top: .45em; padding: .15em .7em; border-radius: .8em; background: var(--soft); font-weight: 900; font-size: .85em; }
+.go { flex: none; color: var(--sh); font-size: 1.8em; font-weight: 900; line-height: 1; }
+
+:focus-visible { outline: 3px solid var(--main); outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) {
+  .friend, .list li { animation: none; }
+  .card, .back { transition: none; }
+}

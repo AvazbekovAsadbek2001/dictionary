@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Words\Schemas;
 
+use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Schema;
 
@@ -11,9 +12,10 @@ class WordForm
     {
         return $schema
             ->components([
-                TextInput::make('section_id')
-                    ->required()
-                    ->numeric(),
+                Select::make('section_id')
+                    ->relationship('section', 'name_uz')
+                    ->columnSpanFull()
+                    ->required(),
                 TextInput::make('name_uz')
                     ->required(),
                 TextInput::make('name_ru')

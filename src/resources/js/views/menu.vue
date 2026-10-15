@@ -1,86 +1,58 @@
-<script setup>
-defineProps({
-    topics: { type: Array, required: true },
-})
-defineEmits(['select', 'back'])
-</script>
-
 <template>
-    <main class="page">
-        <header class="bar">
-            <button class="link" @click="$emit('back')">Orqaga</button>
-        </header>
+  <main class="screen">
+    <header class="bar">
+      <button class="back" @click="goBack">←</button>
 
-        <h2>Mavzular</h2>
-        <span class="rule" aria-hidden="true"></span>
+      <div class="ttl">
+        <h1 class="h">Menu</h1>
+      </div>
 
-        <ul class="list">
-            <li v-for="t in topics" :key="t.id">
-                <button class="tile" @click="$emit('select', t)">
-                    <span class="tile-name">{{ t.name }}</span>
-                    <span class="tile-meta">{{ t.words.length }} ta so'z</span>
-                </button>
-            </li>
-        </ul>
-    </main>
+      <div class="friends" aria-hidden="true">
+        <svg class="friend f2" viewBox="234 106 92 128">
+          <circle cx="280" cy="186" r="44" fill="#f2c79e" />
+          <circle cx="256" cy="200" r="6" fill="#ff9fb8" opacity=".7" />
+          <circle cx="304" cy="200" r="6" fill="#ff9fb8" opacity=".7" />
+          <circle cx="266" cy="190" r="4.5" fill="#231942" />
+          <circle cx="294" cy="190" r="4.5" fill="#231942" />
+          <path d="M268 202 Q280 214 292 202" stroke="#231942" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M240 152 L244 120 Q280 106 316 120 L320 152 Q280 162 240 152 Z" fill="#231942" />
+          <g fill="#fff">
+            <polygon points="0,-6 6,0 0,6 -6,0" transform="translate(258 136)" />
+            <polygon points="0,-6 6,0 0,6 -6,0" transform="translate(280 132)" />
+            <polygon points="0,-6 6,0 0,6 -6,0" transform="translate(302 136)" />
+          </g>
+        </svg>
+      </div>
+    </header>
+
+    <ul class="list">
+      <li v-for="(it, i) in menu" :key="it.id" :style="{ '--i': i }">
+        <button class="card" :class="'c' + (i % 4)" @click="openBlock(it.id)">
+          <span class="ico">{{ it.title.charAt(0) }}</span>
+          <span class="txt"><b>{{ it.title }}</b></span>
+          <span class="go">›</span>
+        </button>
+      </li>
+    </ul>
+  </main>
 </template>
 
-<style scoped>
-.page {
-    flex: 1;
-    width: 100%;
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 20px 24px 48px;
-    box-sizing: border-box;
+<script>
+    export default {
+    name: 'MenuPage',
+    props: {
+        menu: {
+            type: Array,
+            default: () => [],
+        },
+    },
+    methods: {
+        goBack() {
+            window.location.href = '/'
+            },
+        openBlock(id) {
+            window.location.href = `/menu/${id}/sections`
+        },
+    },
 }
-
-.bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px; }
-
-.link {
-    background: none;
-    border: 0;
-    padding: 8px 0;
-    font: 500 15px var(--sans);
-    color: var(--tile);
-    cursor: pointer;
-}
-.link:hover { text-decoration: underline; }
-
-h2 {
-    margin: 8px 0 0;
-    font: 600 clamp(36px, 8vw, 56px)/1.1 var(--serif);
-    letter-spacing: -0.01em;
-}
-
-.rule { display: block; width: 48px; height: 4px; margin: 16px 0 28px; background: var(--saffron); }
-
-.list { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; }
-
-.tile {
-    width: 100%;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 6px;
-    padding: 18px 20px;
-    text-align: left;
-    background: var(--card);
-    color: var(--ink);
-    border: 1px solid var(--line);
-    border-left: 6px solid var(--turq);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: border-color 0.15s, transform 0.15s;
-}
-.tile:hover { border-left-color: var(--saffron); transform: translateX(3px); }
-.tile-name { font: 600 22px/1.2 var(--serif); }
-.tile-meta { font-size: 14px; opacity: 0.7; }
-
-.link:focus-visible,
-.tile:focus-visible { outline: 3px solid var(--saffron); outline-offset: 3px; }
-
-@media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
-}
-</style>
+</script>

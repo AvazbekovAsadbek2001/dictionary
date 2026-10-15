@@ -1,389 +1,195 @@
-<script setup>
-import { ref, computed, nextTick } from 'vue'
-import Menu from './menu.vue'
-import Condition from './condition.vue'
-
-/* ---------- FAKE MA'LUMOTLAR (keyin API bilan almashtiriladi) ---------- */
-const topics = ref([
-    {
-        id: 1,
-        name: 'Oila',
-        words: [
-            { ru: 'мама', uz: 'ona' },
-            { ru: 'папа', uz: 'ota' },
-            { ru: 'брат', uz: 'aka' },
-            { ru: 'сестра', uz: 'opa' },
-            { ru: 'бабушка', uz: 'buvi' },
-            { ru: 'дедушка', uz: 'bobo' },
-            { ru: 'сын', uz: "o'g'il" },
-            { ru: 'дочь', uz: 'qiz' },
-        ],
-    },
-    {
-        id: 2,
-        name: 'Ovqat',
-        words: [
-            { ru: 'хлеб', uz: 'non' },
-            { ru: 'вода', uz: 'suv' },
-            { ru: 'мясо', uz: "go'sht" },
-            { ru: 'яблоко', uz: 'olma' },
-            { ru: 'молоко', uz: 'sut' },
-            { ru: 'рис', uz: 'guruch' },
-            { ru: 'чай', uz: 'choy' },
-            { ru: 'сыр', uz: 'pishloq' },
-        ],
-    },
-    {
-        id: 3,
-        name: 'Hayvonlar',
-        words: [
-            { ru: 'собака', uz: 'it' },
-            { ru: 'кошка', uz: 'mushuk' },
-            { ru: 'лошадь', uz: 'ot' },
-            { ru: 'корова', uz: 'sigir' },
-            { ru: 'птица', uz: 'qush' },
-            { ru: 'рыба', uz: 'baliq' },
-            { ru: 'волк', uz: "bo'ri" },
-            { ru: 'овца', uz: "qo'y" },
-        ],
-    },
-    {
-        id: 4,
-        name: 'Ranglar',
-        words: [
-            { ru: 'красный', uz: 'qizil' },
-            { ru: 'синий', uz: "ko'k" },
-            { ru: 'зелёный', uz: 'yashil' },
-            { ru: 'жёлтый', uz: 'sariq' },
-            { ru: 'чёрный', uz: 'qora' },
-            { ru: 'белый', uz: 'oq' },
-        ],
-    },
-])
-
-/* ---------- HOLAT ---------- */
-const screen = ref('welcome') // welcome | topics | modes | quiz | result
-const topic = ref(null)
-const mode = ref(null)
-const queue = ref([])
-const index = ref(0)
-const score = ref(0)
-const answer = ref('')
-const status = ref('idle') // idle | right | wrong
-const inputEl = ref(null)
-
-const current = computed(() => queue.value[index.value])
-const langLabel = (l) => (l === 'ru' ? 'Rus tilida' : "O'zbek tilida")
-const answerLang = computed(() => (current.value?.show === 'ru' ? 'uz' : 'ru'))
-const progress = computed(() => (queue.value.length ? (index.value / queue.value.length) * 100 : 0))
-
-/* ---------- YORDAMCHILAR ---------- */
-function shuffle(arr) {
-    const a = [...arr]
-    for (let i = a.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1))
-        ;[a[i], a[j]] = [a[j], a[i]]
-    }
-    return a
-}
-
-function normalize(s) {
-    return s
-        .toLowerCase()
-        .trim()
-        .replace(/[ʻʼ’‘`´]/g, "'")
-        .replace(/ё/g, 'е')
-        .replace(/\s+/g, ' ')
-}
-
-/* ---------- HARAKATLAR ---------- */
-function openTopic(t) {
-    topic.value = t
-    screen.value = 'modes'
-}
-
-function startQuiz(m) {
-    mode.value = m
-    queue.value = shuffle(topic.value.words).map((w) => ({
-        ...w,
-        show: m === 'ru' ? 'ru' : m === 'uz' ? 'uz' : Math.random() < 0.5 ? 'ru' : 'uz',
-    }))
-    index.value = 0
-    score.value = 0
-    answer.value = ''
-    status.value = 'idle'
-    screen.value = 'quiz'
-    nextTick(() => inputEl.value?.focus())
-}
-
-function check() {
-    if (status.value !== 'idle' || !answer.value.trim()) return
-    const target = current.value[answerLang.value]
-    const ok = normalize(answer.value) === normalize(target)
-    status.value = ok ? 'right' : 'wrong'
-    if (ok) score.value++
-}
-
-function next() {
-    if (index.value + 1 >= queue.value.length) {
-        screen.value = 'result'
-        return
-    }
-    index.value++
-    answer.value = ''
-    status.value = 'idle'
-    nextTick(() => inputEl.value?.focus())
-}
-
-function onEnter() {
-    status.value === 'idle' ? check() : next()
-}
-
-function back() {
-    if (screen.value === 'modes') screen.value = 'topics'
-    else if (screen.value === 'quiz' || screen.value === 'result') screen.value = 'modes'
-    else if (screen.value === 'topics') screen.value = 'welcome'
-}
-</script>
-
 <template>
-    <div class="welcome">
-        <div class="band" aria-hidden="true"></div>
+  <main class="welcome">
+    <div class="top">
+      <div class="words" aria-hidden="true">
+        <div class="w w1"><b>книга</b><small>kitob</small></div>
+        <div class="w w2"><b>вода</b><small>suv</small></div>
+        <div class="w w3"><b>дом</b><small>uy</small></div>
+      </div>
 
-        <!-- 1. Boshlash -->
-        <main v-if="screen === 'welcome'" class="center">
-            <h1>Lug'at</h1>
-            <span class="rule" aria-hidden="true"></span>
-            <button class="btn primary start" @click="screen = 'topics'">Boshlash</button>
-        </main>
-
-        <!-- 2. Mavzular -->
-        <Menu v-else-if="screen === 'topics'" :topics="topics" @select="openTopic" @back="back" />
-
-        <!-- 3. Shart (ru / uz / aralash) -->
-        <Condition v-else-if="screen === 'modes'" :topic="topic" @select="startQuiz" @back="back" />
-
-        <!-- 4. Mashq -->
-        <main v-else-if="screen === 'quiz'" class="page quiz">
-            <header class="bar">
-                <button class="link" @click="back">Chiqish</button>
-                <span class="count">{{ index + 1 }} / {{ queue.length }}</span>
-            </header>
-            <div class="track" aria-hidden="true"><div class="fill" :style="{ width: progress + '%' }"></div></div>
-
-            <p class="prompt-lang">{{ langLabel(current.show) }}</p>
-            <div class="word" :lang="current.show">{{ current[current.show] }}</div>
-
-            <input
-                ref="inputEl"
-                v-model="answer"
-                class="field"
-                :class="status"
-                :disabled="status !== 'idle'"
-                :placeholder="answerLang === 'uz' ? 'O\'zbekchasini yozing' : 'Ruschasini yozing'"
-                :lang="answerLang"
-                autocomplete="off"
-                autocapitalize="off"
-                spellcheck="false"
-                @keydown.enter="onEnter"
-            />
-
-            <p v-if="status === 'right'" class="msg right">To'g'ri</p>
-            <p v-else-if="status === 'wrong'" class="msg wrong">
-                Noto'g'ri. To'g'ri javob: <strong>{{ current[answerLang] }}</strong>
-            </p>
-            <p v-else class="msg">&nbsp;</p>
-
-            <button v-if="status === 'idle'" class="btn primary" :disabled="!answer.trim()" @click="check">
-                Tekshirish
-            </button>
-            <button v-else class="btn primary" @click="next">
-                {{ index + 1 >= queue.length ? 'Natijani ko\'rish' : 'Keyingisi' }}
-            </button>
-        </main>
-
-        <!-- 5. Natija -->
-        <main v-else-if="screen === 'result'" class="page result">
-            <h2>{{ topic.name }}</h2>
-            <span class="rule small" aria-hidden="true"></span>
-            <div class="score">{{ score }}<span class="of"> / {{ queue.length }}</span></div>
-            <p class="msg">to'g'ri javob</p>
-            <div class="actions">
-                <button class="btn primary" @click="startQuiz(mode)">Qayta boshlash</button>
-                <button class="btn" @click="screen = 'modes'">Rejimni o'zgartirish</button>
-                <button class="btn" @click="screen = 'topics'">Mavzularga qaytish</button>
-            </div>
-        </main>
+      <div class="head">
+        <h1 class="title">Lug'at</h1>
+        <p>Rus va o'zbek so'zlarini o'rganing</p>
+      </div>
     </div>
+
+    <a href = "/menu" class="btn">Boshlash</a>
+
+    <div class="scene">
+      <svg viewBox="0 18 360 308" role="img" aria-label="Ikki do'st salomlashmoqda">
+        <circle cx="180" cy="190" r="142" fill="#fff" opacity=".55" />
+
+        <!-- bezaklar -->
+        <polygon points="0,-10 3,-3 10,-3 4,2 6,10 0,5 -6,10 -4,2 -10,-3 -3,-3" transform="translate(14 262)" fill="#ffd23f" />
+        <polygon points="0,-10 3,-3 10,-3 4,2 6,10 0,5 -6,10 -4,2 -10,-3 -3,-3" transform="translate(330 170) scale(.8)" fill="#ff6b9d" />
+        <polygon points="0,-10 3,-3 10,-3 4,2 6,10 0,5 -6,10 -4,2 -10,-3 -3,-3" transform="translate(180 120) scale(.7)" fill="#2ec4a6" />
+
+        <g transform="translate(186 150)"><circle r="17" fill="#4d96ff" /><text y="7" fill="#fff">Ш</text></g>
+        <g transform="translate(22 112)"><circle r="17" fill="#ffd23f" /><text y="7" fill="#231942">Я</text></g>
+        <g transform="translate(340 126)"><circle r="17" fill="#ff6b9d" /><text y="7" fill="#fff">Oʻ</text></g>
+
+        <!-- yerdagi soyalar -->
+        <ellipse cx="80" cy="322" rx="54" ry="6" fill="#231942" opacity=".12" />
+        <ellipse cx="280" cy="322" rx="54" ry="6" fill="#231942" opacity=".12" />
+
+        <!-- kitob -->
+        <g transform="translate(180 252) scale(.8)" class="book">
+          <rect x="-58" y="-28" width="116" height="52" rx="9" fill="#ffd23f" />
+          <path d="M-2 -22 Q-28 -30 -52 -22 L-52 14 Q-28 6 -2 14Z" fill="#fff" />
+          <path d="M2 -22 Q28 -30 52 -22 L52 14 Q28 6 2 14Z" fill="#fff" />
+          <path d="M-44 -10 Q-28 -15 -12 -10 M-44 0 Q-28 -5 -12 0 M12 -10 Q28 -15 44 -10 M12 0 Q28 -5 44 0" stroke="#4d96ff" stroke-width="3" fill="none" stroke-linecap="round" />
+        </g>
+
+        <!-- RUS do'st -->
+        <g class="bob">
+          <ellipse cx="80" cy="271" rx="54" ry="47" fill="#4d96ff" />
+          <ellipse cx="62" cy="315" rx="15" ry="8" fill="#231942" /><ellipse cx="98" cy="315" rx="15" ry="8" fill="#231942" />
+          <g class="wave" style="transform-origin:118px 262px">
+            <path d="M118 262 L140 236" stroke="#4d96ff" stroke-width="16" stroke-linecap="round" />
+            <circle cx="142" cy="232" r="11" fill="#ffd9b8" />
+          </g>
+          <circle cx="80" cy="186" r="44" fill="#ffd9b8" />
+          <circle cx="56" cy="200" r="6" fill="#ff9fb8" opacity=".7" />
+          <circle cx="104" cy="200" r="6" fill="#ff9fb8" opacity=".7" />
+          <circle cx="66" cy="190" r="4.5" fill="#231942" />
+          <circle cx="94" cy="190" r="4.5" fill="#231942" />
+          <path d="M68 202 Q80 214 92 202" stroke="#231942" stroke-width="3" fill="none" stroke-linecap="round" />
+          <rect x="30" y="152" width="14" height="36" rx="7" fill="#ff6b9d" />
+          <rect x="116" y="152" width="14" height="36" rx="7" fill="#ff6b9d" />
+          <path d="M36 156 Q36 114 80 114 Q124 114 124 156 Z" fill="#ff6b9d" />
+          <ellipse cx="80" cy="156" rx="46" ry="9" fill="#fff" />
+        </g>
+
+        <!-- O'ZBEK do'st -->
+        <g class="bob b2">
+          <ellipse cx="280" cy="271" rx="54" ry="47" fill="#2ec4a6" />
+          <ellipse cx="262" cy="315" rx="15" ry="8" fill="#231942" /><ellipse cx="298" cy="315" rx="15" ry="8" fill="#231942" />
+          <g class="wave" style="transform-origin:242px 262px">
+            <path d="M242 262 L220 236" stroke="#2ec4a6" stroke-width="16" stroke-linecap="round" />
+            <circle cx="218" cy="232" r="11" fill="#f2c79e" />
+          </g>
+          <circle cx="280" cy="186" r="44" fill="#f2c79e" />
+          <circle cx="256" cy="200" r="6" fill="#ff9fb8" opacity=".7" />
+          <circle cx="304" cy="200" r="6" fill="#ff9fb8" opacity=".7" />
+          <circle cx="266" cy="190" r="4.5" fill="#231942" />
+          <circle cx="294" cy="190" r="4.5" fill="#231942" />
+          <path d="M268 202 Q280 214 292 202" stroke="#231942" stroke-width="3" fill="none" stroke-linecap="round" />
+          <path d="M240 152 L244 120 Q280 106 316 120 L320 152 Q280 162 240 152 Z" fill="#231942" />
+          <g fill="#fff">
+            <polygon points="0,-6 6,0 0,6 -6,0" transform="translate(258 136)" />
+            <polygon points="0,-6 6,0 0,6 -6,0" transform="translate(280 132)" />
+            <polygon points="0,-6 6,0 0,6 -6,0" transform="translate(302 136)" />
+          </g>
+        </g>
+
+        <!-- gap pufakchalari -->
+        <g>
+          <rect x="20" y="30" width="120" height="44" rx="16" fill="#ffd23f" />
+          <rect x="20" y="26" width="120" height="44" rx="16" fill="#fff" />
+          <path d="M70 68 L88 68 L78 88 Z" fill="#fff" />
+          <text x="80" y="55" class="say">Привет!</text>
+        </g>
+        <g>
+          <rect x="220" y="50" width="120" height="44" rx="16" fill="#ffd23f" />
+          <rect x="220" y="46" width="120" height="44" rx="16" fill="#fff" />
+          <path d="M270 88 L288 88 L280 108 Z" fill="#fff" />
+          <text x="280" y="75" class="say">Salom!</text>
+        </g>
+      </svg>
+    </div>
+
+  </main>
 </template>
 
 <style scoped>
-:global(body) { margin: 0; }
 
-.welcome {
-    --paper: #f4f7fb;
-    --ink: #0e2a47;
-    --tile: #1d4e89;
-    --turq: #0f8b8d;
-    --saffron: #f2b134;
-    --card: #ffffff;
-    --line: #d5dfeb;
-    --ok: #0f8b5d;
-    --bad: #c2392f;
-    --serif: Charter, "Iowan Old Style", "Palatino Linotype", Georgia, serif;
-    --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
-
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: var(--sans);
-}
-
-@media (prefers-color-scheme: dark) {
+    /*          ---------- welcome ----------
+    Hamma o'lcham "em" da: .welcome ning font-size qiymatini o'zgartirsangiz
+    butun sahifa birdan kattalashadi yoki kichrayadi. */
     .welcome {
-        --paper: #0b1626;
-        --ink: #e7eef8;
-        --tile: #6fa3e6;
-        --turq: #3cc0c2;
-        --card: #12233a;
-        --line: #24395a;
-        --ok: #4cd1a0;
-        --bad: #ff8077;
+        font-size: clamp(16px, 2.4vmin, 28px);   /* kompyuter (keng ekran) */
+        width: 100%;
+        max-width: 30em;
+        height: 100dvh;
+        margin: 0 auto;
+        padding: max(1.2em, env(safe-area-inset-top)) 1.2em 0;
+        display: grid;
+        grid-template-rows: 1fr auto 1fr;   /* tepa | tugma (aynan o'rtada) | pastki */
+        justify-items: center;
+        overflow: hidden;
     }
-}
 
-/* Sopol/plitka hoshiyasini eslatuvchi yo'l-yo'l tasma */
-.band {
-    height: 10px;
-    background: repeating-linear-gradient(
-        135deg,
-        var(--tile) 0 8px,
-        var(--turq) 8px 16px,
-        var(--saffron) 16px 20px,
-        var(--turq) 20px 28px
-    );
-}
+    .title {
+        font-size: 4em;
+        font-weight: 900;
+        letter-spacing: -0.03em;
+        line-height: 1.1;
+        background: linear-gradient(90deg, var(--main), var(--main-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+    }
 
-.center {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-}
+    .btn {
+        min-width: 11em;
+        padding: .9em 3em;
+        border: 0;
+        border-radius: 1.1em;
+        text-decoration: none;
+        background: linear-gradient(90deg, var(--main), var(--main-2));
+        color: #fff;
+        font: inherit;
+        font-size: 1.15em;
+        font-weight: 900;
+        cursor: pointer;
+        box-shadow: 0 .3em 0 var(--main-dark);
+        transition: transform .08s, box-shadow .08s;
+    }
+    .btn:active { transform: translateY(.2em); box-shadow: 0 .1em 0 var(--main-dark); }
 
-h1 {
-    margin: 0;
-    font: 600 clamp(64px, 16vw, 144px)/1 var(--serif);
-    letter-spacing: -0.02em;
-}
+    .top {
+        align-self: stretch;
+        display: flex;
+        flex-direction: column;
+        justify-content: flex-end;   /* tugmaga yaqin turadi */
+        align-items: center;
+        gap: 1.5em;
+        padding-bottom: 2em;
+    }
 
-h2 {
-    margin: 8px 0 0;
-    font: 600 clamp(36px, 8vw, 56px)/1.1 var(--serif);
-    letter-spacing: -0.01em;
-}
+    .words { display: flex; gap: .6em; justify-content: center; }
+    .w { padding: .75em 1.1em; border-radius: 1.1em; text-align: center; line-height: 1.2; color: var(--ink); }
+    .w b { display: block; font-size: 1.3em; font-weight: 900; }
+    .w small { font-size: .85em; font-weight: 700; opacity: .7; }
+    .w1 { background: var(--pink);   box-shadow: 0 .3em 0 #d9457b; transform: rotate(-5deg); }
+    .w2 { background: var(--yellow); box-shadow: 0 .3em 0 #d9a900; transform: translateY(-.5em) rotate(3deg); }
+    .w3 { background: var(--green);  box-shadow: 0 .3em 0 #1a9a80; transform: rotate(-3deg); }
 
-.rule {
-    width: 72px;
-    height: 4px;
-    margin-top: 20px;
-    background: var(--saffron);
-}
-.rule.small { width: 48px; margin: 16px 0 28px; }
+    .head { text-align: center; }
+    .head p { color: var(--muted); font-weight: 700; margin-top: .25em; }
 
-/* ---------- Tugmalar ---------- */
-.btn {
-    font: 600 16px/1 var(--sans);
-    padding: 15px 28px;
-    border-radius: 6px;
-    border: 2px solid var(--tile);
-    background: transparent;
-    color: var(--tile);
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s, transform 0.1s;
-}
-.btn:hover:not(:disabled) { background: var(--tile); color: var(--paper); }
-.btn:active:not(:disabled) { transform: translateY(1px); }
-.btn.primary { background: var(--tile); color: var(--paper); }
-.btn.primary:hover:not(:disabled) { background: var(--ink); border-color: var(--ink); color: var(--paper); }
-.btn:disabled { opacity: 0.45; cursor: not-allowed; }
-.btn:focus-visible,
-.link:focus-visible,
-.field:focus-visible { outline: 3px solid var(--saffron); outline-offset: 3px; }
+    .scene { min-height: 0; width: 100%; padding-top: 2em; display: flex; justify-content: center; align-items: flex-start; }
+    .scene svg { height: 100%; width: auto; max-width: 100%; max-height: 18em; overflow: visible; }
+    .scene text { font-family: var(--font); font-weight: 900; font-size: 20px; text-anchor: middle; }
+    .scene .say { font-size: 22px; fill: var(--ink); }
 
-.start { margin-top: 48px; padding: 18px 48px; font-size: 18px; }
+    /* ---------- telefon (tik ekran): cho'zinchoq, butun balandlikka yoyiladi ---------- */
+    @media (max-aspect-ratio: 1/1) {
+    .welcome { font-size: clamp(16px, 4.6vw, 26px); }
+    .top { justify-content: space-evenly; gap: 0; padding-bottom: 0; }
+    .scene { padding-top: 0; align-items: center; }
+    .scene svg { height: auto; width: 100%; max-width: 22em; max-height: 100%; }
+    }
 
-.link {
-    background: none;
-    border: 0;
-    padding: 8px 0;
-    font: 500 15px var(--sans);
-    color: var(--tile);
-    cursor: pointer;
-}
-.link:hover { text-decoration: underline; }
+    .bob { animation: bob 3s ease-in-out infinite; }
+    .b2 { animation-delay: -1.5s; }
+    .wave { animation: wave 1.6s ease-in-out infinite; }
+    @keyframes bob { 50% { transform: translateY(-7px); } }
+    @keyframes wave { 50% { transform: rotate(-14deg); } }
 
-/* ---------- Sahifalar ---------- */
-.page {
-    flex: 1;
-    width: 100%;
-    max-width: 560px;
-    margin: 0 auto;
-    padding: 20px 24px 48px;
-    box-sizing: border-box;
-}
-
-.bar {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 24px;
-}
-
-.count { font-size: 14px; color: var(--tile); font-variant-numeric: tabular-nums; }
-
-/* ---------- Mashq ---------- */
-.track { height: 4px; background: var(--line); border-radius: 2px; overflow: hidden; }
-.fill { height: 100%; background: var(--turq); transition: width 0.25s; }
-
-.prompt-lang { margin: 40px 0 8px; font-size: 14px; opacity: 0.7; }
-
-.word {
-    font: 600 clamp(44px, 12vw, 72px)/1.1 var(--serif);
-    letter-spacing: -0.01em;
-    word-break: break-word;
-    margin-bottom: 32px;
-}
-
-.field {
-    width: 100%;
-    box-sizing: border-box;
-    padding: 16px 18px;
-    font: 500 20px var(--sans);
-    color: var(--ink);
-    background: var(--card);
-    border: 2px solid var(--line);
-    border-radius: 6px;
-}
-.field.right { border-color: var(--ok); }
-.field.wrong { border-color: var(--bad); }
-
-.msg { min-height: 24px; margin: 14px 0 22px; font-size: 16px; }
-.msg.right { color: var(--ok); font-weight: 600; }
-.msg.wrong { color: var(--bad); }
-.msg strong { color: var(--ink); }
-
-/* ---------- Natija ---------- */
-.result { text-align: left; }
-.score { font: 600 clamp(72px, 20vw, 120px)/1 var(--serif); }
-.score .of { font-size: 0.4em; opacity: 0.55; }
-.actions { display: grid; gap: 12px; margin-top: 12px; }
-
-@media (prefers-reduced-motion: reduce) {
-    * { transition: none !important; }
-}
+    :focus-visible { outline: 3px solid var(--main); outline-offset: 3px; }
+    @media (prefers-reduced-motion: reduce) {
+    .bob, .wave { animation: none; }
+    .btn { transition: none; }
+    }
 </style>
