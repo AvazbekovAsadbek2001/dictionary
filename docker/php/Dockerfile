@@ -30,6 +30,11 @@ ENV HOME=/tmp \
     npm_config_cache=/tmp/npm-cache
 
 WORKDIR /var/www
+
+RUN mkdir -p storage/logs bootstrap/cache \
+    && chown -R www-data:www-data storage bootstrap/cache \
+    && chmod -R ug+rwX storage bootstrap/cache
+    
 USER www-data
 EXPOSE 9000
 CMD ["php-fpm"]
