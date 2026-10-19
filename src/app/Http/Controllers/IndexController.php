@@ -103,6 +103,7 @@ class IndexController extends Controller
 
     private function normalize(string $text): string
     {
+        $text = preg_replace('/\([^)]*\)/u', '', $text);
         $text = mb_strtolower($text, 'UTF-8');                       // katta-kichik harf farqi yo'q
         $text = str_replace('ё', 'е', $text);                        // ё = е
         $text = str_replace(['ʻ', 'ʼ', '’', '‘', '`', '´'], "'", $text); // o', g' belgilarining hamma turi bir xil

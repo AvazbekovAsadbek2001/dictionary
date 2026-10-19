@@ -10,7 +10,7 @@ export default defineConfig({
             vue: 'vue/dist/vue.esm-bundler.js',
         },
     },
-    
+
     plugins: [
         laravel({
             input: ['resources/css/app.css', 'resources/js/app.js'],
@@ -26,9 +26,9 @@ export default defineConfig({
     ],
     server: {
         host: '0.0.0.0',
-        port: 5173,
+        port: 5174,
         strictPort: true,
-        origin: 'http://localhost:5173',
+        origin: 'http://localhost:5174',
         hmr: { host: 'localhost' },
         watch: { usePolling: true },
         cors: {

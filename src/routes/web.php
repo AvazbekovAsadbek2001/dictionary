@@ -12,4 +12,3 @@ Route::get('/menu/{menuId}/sections/{id}/{type}',[IndexController::class, 'condi
 
 Route::get('back/word', [IndexController::class, 'getword'])->name('getword');
 Route::post('back/check', [IndexController::class, 'checkword'])->name('checkword');
-
