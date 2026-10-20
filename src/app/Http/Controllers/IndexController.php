@@ -64,9 +64,11 @@ class IndexController extends Controller
             ->inRandomOrder()
             ->first();
 
+        $variants = array_map([$this, 'normalize'], explode('/', $word->title));
+
         return response()->json([
             'id' => $word->id,
-            'word' => $word->title,
+            'word' => Arr::random($variants),
             'from' => ($column == 'name_uz') ? 'uz' : 'ru',
         ]);
     }

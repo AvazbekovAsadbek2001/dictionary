@@ -240,7 +240,9 @@ export default {
         this.loading = false
         // Ekran yangilanishini kutamiz, keyin inputga kursorni qo'yamiz
         await this.$nextTick()
-        this.$refs.input && this.$refs.input.focus()
+        if (!window.matchMedia('(max-width: 768px)').matches) {
+            this.$refs.input && this.$refs.input.focus()
+        }
       }
     },
 
