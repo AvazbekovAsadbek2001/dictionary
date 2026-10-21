@@ -241,7 +241,7 @@ export default {
         // Ekran yangilanishini kutamiz, keyin inputga kursorni qo'yamiz
         await this.$nextTick()
         if (!window.matchMedia('(max-width: 768px)').matches) {
-            this.$refs.input && this.$refs.input.focus()
+            //this.$refs.input && this.$refs.input.focus()
         }
       }
     },
@@ -283,7 +283,7 @@ export default {
 
         // Fokusni tugmaga o'tkazamiz — shunda Enter bosib keyingi so'zga o'tish mumkin
         await this.$nextTick()
-        this.$refs.btn && this.$refs.btn.focus()
+        //this.$refs.btn && this.$refs.btn.focus()
       } catch {
         // Tarmoq yoki server xatosi — foydalanuvchi qayta bosib ko'radi
         this.error = "Javobni tekshirib bo'lmadi"
